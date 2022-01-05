@@ -5,6 +5,7 @@ var public = require("./public");
 
 // middleware
 var privateToken = require("../middlewares/privateToken");
+var redisCache = require("../middlewares/redisCache");
 
 // Loop all private routes
 var private_get = private.filter((res) => res.method === "get");
@@ -19,13 +20,17 @@ var public_patch = public.filter((res) => res.method === "patch");
 var public_deletes = public.filter((res) => res.method === "delete");
 
 // render all private routes
-private_get.map((res) => router.get(res.path, privateToken, res.controllers));
-private_post.map((res) => router.post(res.path, privateToken, res.controllers));
+private_get.map((res) =>
+  router.get(res.path, privateToken, redisCache, res.controllers)
+);
+private_post.map((res) =>
+  router.post(res.path, privateToken, redisCache, res.controllers)
+);
 private_patch.map((res) =>
-  router.patch(res.path, privateToken, res.controllers)
+  router.patch(res.path, privateToken, redisCache, res.controllers)
 );
 private_deletes.map((res) =>
-  router.delete(res.path, privateToken, res.controllers)
+  router.delete(res.path, privateToken, redisCache, res.controllers)
 );
 
 // render all public routes
