@@ -6,6 +6,7 @@ var public = require("./public");
 // middleware
 var privateToken = require("../middlewares/privateToken");
 var redisCache = require("../middlewares/redisCache");
+var mainValidator = require("../middlewares/mainValidator");
 
 // Loop all private routes
 var private_get = private.filter((res) => res.method === "get");
@@ -20,23 +21,91 @@ var public_patch = public.filter((res) => res.method === "patch");
 var public_deletes = public.filter((res) => res.method === "delete");
 
 // render all private routes
-private_get.map((res) =>
-  router.get(res.path, privateToken, redisCache, res.controllers)
+private_get.map((result) =>
+  router.get(
+    result.path,
+    privateToken,
+    function (req, res, next) {
+      mainValidator(req, res, next, result);
+    },
+    redisCache,
+    result.controllers
+  )
 );
-private_post.map((res) =>
-  router.post(res.path, privateToken, redisCache, res.controllers)
+private_post.map((result) =>
+  router.post(
+    result.path,
+    privateToken,
+    function (req, res, next) {
+      mainValidator(req, res, next, result);
+    },
+    redisCache,
+    result.controllers
+  )
 );
-private_patch.map((res) =>
-  router.patch(res.path, privateToken, redisCache, res.controllers)
+private_patch.map((result) =>
+  router.patch(
+    result.path,
+    privateToken,
+    function (req, res, next) {
+      mainValidator(req, res, next, result);
+    },
+    redisCache,
+    result.controllers
+  )
 );
-private_deletes.map((res) =>
-  router.delete(res.path, privateToken, redisCache, res.controllers)
+private_deletes.map((result) =>
+  router.delete(
+    result.path,
+    privateToken,
+    function (req, res, next) {
+      mainValidator(req, res, next, result);
+    },
+    redisCache,
+    result.controllers
+  )
 );
 
 // render all public routes
-public_get.map((res) => router.get(res.path, res.controllers));
-public_post.map((res) => router.post(res.path, res.controllers));
-public_patch.map((res) => router.patch(res.path, res.controllers));
-public_deletes.map((res) => router.delete(res.path, res.controllers));
+public_get.map((result) =>
+  router.get(
+    result.path,
+    function (req, res, next) {
+      mainValidator(req, res, next, result);
+    },
+    redisCache,
+    result.controllers
+  )
+);
+public_post.map((result) =>
+  router.post(
+    result.path,
+    function (req, res, next) {
+      mainValidator(req, res, next, result);
+    },
+    redisCache,
+    result.controllers
+  )
+);
+public_patch.map((result) =>
+  router.patch(
+    result.path,
+    function (req, res, next) {
+      mainValidator(req, res, next, result);
+    },
+    redisCache,
+    result.controllers
+  )
+);
+public_deletes.map((result) =>
+  router.delete(
+    result.path,
+    function (req, res, next) {
+      mainValidator(req, res, next, result);
+    },
+    redisCache,
+    result.controllers
+  )
+);
 
 module.exports = router;

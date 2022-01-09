@@ -4,6 +4,7 @@ module.exports = [
   {
     path: `${version}/auth/login`,
     controllers: require("../controllers/Auth").login,
+    validator: require("../controllers/Auth/validator").loginValidator, // global validator
     method: "post",
   },
   {
