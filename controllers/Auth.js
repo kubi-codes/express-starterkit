@@ -4,106 +4,113 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const bcryptSalt = bcrypt.genSaltSync(10);
 
-const login = async (req, res) => {
-  try {
-    const { email, password } = req.body;
+const login = (req, res) => {
+  const { email, password } = req.body;
 
-    const user = await model.users.findOne({
+  model.users
+    .findOne({
       where: { email: email },
-    });
+    })
+    .then((result) => {
+      if (!result) throw new Error("User not existt");
 
-    if (!user) {
-      throw new Error("User not exist");
-    }
+      if (result && result.dataValues.is_login) {
+        throw new Error("User already login");
+      }
 
-    if (user && user.dataValues.is_login) {
-      throw new Error("User already login");
-    }
+      return result;
+    })
+    .then((result) => {
+      const compare = bcrypt.compareSync(password, result.dataValues.password);
+      if (!compare) throw new Error("Wrong password");
 
-    const compare = bcrypt.compareSync(password, user.dataValues.password);
+      model.users
+        .update({ is_login: 1 }, { where: { email } })
+        .then((status) => {
+          if (!status[0]) throw new Error("Something wrong");
 
-    if (!compare) {
-      throw new Error("Wrong password");
-    }
+          const token = jwt.sign(req.body, process.env.APP_SECRET_KEY, {
+            expiresIn: "24h",
+          });
 
-    await model.users.update({ is_login: 1 }, { where: { email } });
-
-    const token = jwt.sign(req.body, process.env.APP_SECRET_KEY, {
-      expiresIn: "24h",
-    });
-
-    res.json({
-      status: "OK",
-      messages: "",
-      data: {
-        token: token,
-        user,
-      },
-    });
-  } catch (error) {
-    res.status(400).json({
-      status: "ERROR",
-      messages: error.message,
-      data: null,
-    });
-  }
+          res.json({
+            status: "OK",
+            messages: "",
+            data: {
+              token: token,
+              result,
+            },
+          });
+        });
+    })
+    .catch((error) =>
+      res.status(401).json({
+        status: "ERROR",
+        messages: error.message,
+        data: null,
+      })
+    );
 };
 
-const register = async (req, res) => {
-  try {
-    const requestBody = req.body;
-    const users = await model.users.findOne({
+const register = (req, res) => {
+  const requestBody = req.body;
+
+  model.users
+    .findOne({
       where: { email: requestBody.email },
-    });
+    })
+    .then((result) => {
+      if (result) throw new Error("User already registered");
 
-    if (users) {
-      throw new Error("User already registered");
-    }
+      const hashPassword = bcrypt.hashSync(requestBody.password, bcryptSalt);
 
-    const hashPassword = bcrypt.hashSync(requestBody.password, bcryptSalt);
+      return model.users.create({
+        ...requestBody,
+        ...{
+          password: hashPassword,
+          is_login: 0,
+        },
+      });
+    })
+    .then((result) => {
+      if (!result) throw new Error("Failed insert data");
 
-    const create = await model.users.create({
-      ...requestBody,
-      ...{
-        password: hashPassword,
-        is_login: 0,
-      },
-    });
-
-    if (!create) {
-      throw new Error("Failed insert data");
-    }
-
-    res.status(201).json({
-      status: "OK",
-      messages: "insert success",
-      data: null,
-    });
-  } catch (error) {
-    res.status(400).json({
-      status: "ERROR",
-      messages: error.message,
-      data: null,
-    });
-  }
+      res.status(201).json({
+        status: "OK",
+        messages: "insert success",
+        data: null,
+      });
+    })
+    .catch((error) =>
+      res.status(400).json({
+        status: "ERROR",
+        messages: error.message || "Something wrong",
+        data: null,
+      })
+    );
 };
 
 const logout = async (req, res) => {
-  try {
-    const { id } = req.params;
-    await model.users.update({ is_login: 0 }, { where: { id } });
-    res.json({
-      status: "OK",
-      messages: "Logout success",
-      data: null,
-    });
-  } catch (error) {
-    res.status(400).json({
-      status: "ERROR",
-      messages: error.message,
-      data: null,
-    });
-  }
+  const { id } = req.params;
+
+  model.users
+    .update({ is_login: 0 }, { where: { id } })
+    .then((result) => {
+      if (!result[0]) throw new Error("Failed logout");
+
+      res.json({
+        status: "OK",
+        messages: "Logout success",
+        data: null,
+      });
+    })
+    .catch((error) =>
+      res.status(400).json({
+        status: "ERROR",
+        messages: error.message,
+        data: null,
+      })
+    );
 };
 
 module.exports = { login, register, logout };
