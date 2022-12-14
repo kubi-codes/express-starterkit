@@ -1,10 +1,12 @@
-var createError = require("http-errors");
 var express = require("express");
 var path = require("path");
 var cookieParser = require("cookie-parser");
 var logger = require("morgan");
 var cors = require("cors");
 var http = require("http");
+var Sentry = require("@sentry/node");
+var Tracing = require("@sentry/tracing");
+var fileUpload = require("express-fileupload");
 
 var app = express();
 var env = process.env.NODE_ENV || "development";
@@ -40,21 +42,63 @@ if (env) {
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "jade");
 
+// use middleware for grant access upload
+app.use(
+  fileUpload({
+    useTempFiles: true,
+    tempFileDir: "/tmp/",
+  })
+);
+
 app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
+// Index route
 app.use("/", indexRouter);
 
 // catch 404 and forward to error handler
-app.use(function (req, res, next) {
-  res.json({
+app.use(function (req, res) {
+  res.status(500).json({
     status: true,
     messages: "Api running well",
   });
 });
+
+// catch error in sentry
+if (process.env.SENTRY_DSN) {
+  // Sentry
+  Sentry.init({
+    dsn: process.env.SENTRY_DSN,
+    // or pull from params
+    // dsn: params.SENTRY_DSN,
+    environment: "development",
+    integrations: [
+      // enable HTTP calls tracing
+      new Sentry.Integrations.Http({ tracing: true }),
+      // enable Express.js middleware tracing
+      new Tracing.Integrations.Express({ app }),
+    ],
+
+    // Set tracesSampleRate to 1.0 to capture 100%
+    // of transactions for performance monitoring.
+    // We recommend adjusting this value in production
+    tracesSampleRate: 1.0,
+    // or pull from params
+    // tracesSampleRate: parseFloat(params.SENTRY_TRACES_SAMPLE_RATE),
+  });
+
+  // RequestHandler creates a separate execution context using domains, so that every
+  // transaction/span/breadcrumb is attached to its own Hub instance
+  app.use(Sentry.Handlers.requestHandler());
+  // TracingHandler creates a trace for every incoming request
+  app.use(Sentry.Handlers.tracingHandler());
+
+  // The error handler must be before any other error middleware and after all controllers
+  app.use(Sentry.Handlers.errorHandler());
+}
 
 // error handler
 app.use(function (err, req, res, next) {
@@ -68,44 +112,6 @@ app.use(function (err, req, res, next) {
 });
 
 // init server
-var server = http.createServer(app);
-// var { Server } = require("socket.io");
-// var io = new Server(server);
-
-/*
- * Run another socket in here.
- */
-// const { addUser, getUser, deleteUser, getUsers } = require("./users");
-
-// io.on("connection", (socket) => {
-//   socket.on("login", ({ name, room }, callback) => {
-//     const { user, error } = addUser(socket.id, name, room);
-//     if (error) return callback(error);
-//     socket.join(user.room);
-//     socket.in(room).emit("notification", {
-//       title: "Someone's here",
-//       description: `${user.name} just entered the room`,
-//     });
-//     io.in(room).emit("users", getUsers(room));
-//     callback();
-//   });
-
-//   socket.on("sendMessage", (message) => {
-//     const user = getUser(socket.id);
-//     io.in(user.room).emit("message", { user: user.name, text: message });
-//   });
-
-//   socket.on("disconnect", () => {
-//     console.log("User disconnected");
-//     const user = deleteUser(socket.id);
-//     if (user) {
-//       io.in(user.room).emit("notification", {
-//         title: "Someone just left",
-//         description: `${user.name} just left the room`,
-//       });
-//       io.in(user.room).emit("users", getUsers(user.room));
-//     }
-//   });
-// });
+const server = http.createServer(app);
 
 module.exports = { app, server };

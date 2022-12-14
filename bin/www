@@ -11,7 +11,7 @@ var debug = require("debug")("express-starterkit:server");
  * Get port from environment and store in Express.
  */
 
-var port = normalizePort(process.env.PORT || "5000");
+var port = normalizePort(process.env.APP_PORT || "5000");
 app.set("port", port);
 
 /**

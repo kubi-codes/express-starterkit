@@ -1,4 +1,5 @@
 const version = "/v1";
+const { uploadSingle } = require("../utils/images");
 
 module.exports = [
   {
@@ -16,5 +17,12 @@ module.exports = [
     path: `${version}/auth/logout/:id`,
     controllers: require("../controllers/Auth").logout,
     method: "get",
+  },
+
+  {
+    path: `${version}/test`,
+    controllers: require("../controllers/Auth").test,
+    method: "post",
+    middleware: uploadSingle,
   },
 ];

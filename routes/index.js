@@ -83,6 +83,13 @@ public_post.map((result) =>
     function (req, res, next) {
       mainValidator(req, res, next, result);
     },
+    function (req, res, next) {
+      if (result?.middleware) {
+        result?.middleware(req, res, next, result);
+      } else {
+        next();
+      }
+    },
     redisCache,
     result.controllers
   )
