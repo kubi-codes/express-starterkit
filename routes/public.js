@@ -18,11 +18,4 @@ module.exports = [
     controllers: require("../controllers/Auth").logout,
     method: "get",
   },
-
-  {
-    path: `${version}/test`,
-    controllers: require("../controllers/Auth").test,
-    method: "post",
-    middleware: uploadSingle,
-  },
 ];

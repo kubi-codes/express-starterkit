@@ -7,10 +7,30 @@ var http = require("http");
 var Sentry = require("@sentry/node");
 var Tracing = require("@sentry/tracing");
 var fileUpload = require("express-fileupload");
+var compression = require("compression");
 
 var app = express();
 var env = process.env.NODE_ENV || "development";
 var indexRouter = require("./routes/index");
+
+// Compress all HTTP responses
+app.use(
+  compression({
+    // filter: Decide if the answer should be compressed or not,
+    // depending on the 'shouldCompress' function above
+    filter: (req, res) => {
+      if (req.headers["x-no-compression"]) {
+        // Will not compress responses, if this header is present
+        return false;
+      }
+      // Resort to standard compression
+      return compression.filter(req, res);
+    },
+    // threshold: It is the byte threshold for the response
+    // body size before considering compression, the default is 1 kB
+    threshold: 0,
+  })
+);
 
 /* CORS Setting */
 if (env) {
@@ -61,7 +81,7 @@ app.use("/", indexRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res) {
-  res.status(500).json({
+  res.status(200).json({
     status: true,
     messages: "Api running well",
   });
