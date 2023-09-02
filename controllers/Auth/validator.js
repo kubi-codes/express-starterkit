@@ -1,10 +1,10 @@
 module.exports = {
   loginValidator: {
-    email: "required|email",
+    email: "required|maxLength:250",
     password: "required",
   },
-  loginValidator: {
-    email: "required|email",
+  registerValidator: {
+    email: "required|email|maxLength:250",
     password: "required",
   },
 };

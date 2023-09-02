@@ -5,17 +5,13 @@ module.exports = [
   {
     path: `${version}/auth/login`,
     controllers: require("../controllers/Auth").login,
-    validator: require("../controllers/Auth/validator").loginValidator, // global validator
+    validator: require("../controllers/Auth/validator").loginValidator,
     method: "post",
   },
   {
     path: `${version}/auth/register`,
     controllers: require("../controllers/Auth").register,
+    validator: require("../controllers/Auth/validator").registerValidator,
     method: "post",
-  },
-  {
-    path: `${version}/auth/logout/:id`,
-    controllers: require("../controllers/Auth").logout,
-    method: "get",
   },
 ];

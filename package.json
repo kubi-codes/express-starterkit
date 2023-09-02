@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "start": "export NODE_ENV=production && node ./bin/www",
-    "dev": "nodemon ./bin/www"
+    "dev": "nodemon ./bin/www",
+    "generate-swagger": "npx express-swagger-generator -i ./app.js -o ./swagger.json -c ./swagger-config.json"
   },
   "dependencies": {
     "@sentry/node": "^7.26.0",
@@ -18,9 +19,7 @@
     "dotenv": "^10.0.0",
     "express": "~4.16.1",
     "express-fileupload": "^1.4.0",
-    "express-redis-cache": "^1.1.3",
-    "express-validator": "^6.14.0",
-    "http-errors": "~1.6.3",
+    "express-swagger-generator": "^1.1.17",
     "ioredis": "^4.28.2",
     "jade": "~1.11.0",
     "jsonwebtoken": "^8.5.1",
@@ -29,6 +28,8 @@
     "pg": "^8.8.0",
     "redis": "^4.5.1",
     "sequelize": "^6.6.5",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.0",
     "uuid": "^9.0.0"
   },
   "devDependencies": {
