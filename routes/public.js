@@ -14,4 +14,9 @@ module.exports = [
     validator: require("../controllers/Auth/validator").registerValidator,
     method: "post",
   },
+  {
+    path: `${version}/upload`,
+    controllers: require("../controllers/Upload").upload,
+    method: "post",
+  },
 ];
