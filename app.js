@@ -9,6 +9,8 @@ var Tracing = require("@sentry/tracing");
 var fileUpload = require("express-fileupload");
 var compression = require("compression");
 var swagerConfig = require('./utils/swagger')
+var helmet = require('helmet');
+var hpp = require("hpp");
 
 var app = express();
 var env = process.env.NODE_ENV || "development";
@@ -72,6 +74,8 @@ app.use(
   })
 );
 
+app.use(hpp());
+app.use(helmet());
 app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));

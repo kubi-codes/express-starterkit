@@ -3,7 +3,7 @@ let options = {
     info: {
       description: "This is a sample server",
       title: "Swagger",
-      version: "3.0.0",
+      version: "1.0.0",
     },
     host: "localhost:3200",
     basePath: "/v1",

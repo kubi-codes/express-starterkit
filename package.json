@@ -20,6 +20,8 @@
     "express": "~4.16.1",
     "express-fileupload": "^1.4.0",
     "express-swagger-generator": "^1.1.17",
+    "helmet": "^7.0.0",
+    "hpp": "^0.2.3",
     "ioredis": "^4.28.2",
     "jade": "~1.11.0",
     "jsonwebtoken": "^8.5.1",
